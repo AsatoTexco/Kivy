@@ -1,0 +1,81 @@
+<MenuScreen>
+    
+    canvas.before:
+		Color:
+			rgba: 1, 1, 1, 1
+
+		Rectangle:
+			size: root.size
+ 
+	Label:
+		color: 0, 0, 0, 1
+		text: 'Welcome to chatapp'
+		size: root.width*0.2, root.height*0.05
+		pos: root.width*0.4, root.height*0.9
+		font_size: root.height*0.04
+    
+    TextInput:
+        id: name_id
+        size: root.width*0.3, root.height*0.06
+        pos: root.width*0.35, root.height*0.6
+        hint_text: 'Username'
+
+    TextInput:
+        id: ip_id
+        size: root.width*0.3, root.height*0.06
+        pos: root.width*0.35, root.height*0.5
+        hint_text: 'IP'
+
+    Button:
+        text:'Enviar'
+        size: root.width*0.2, root.height*0.05
+		pos: root.width*0.4, root.height*0.4
+        on_press: root.initiate()
+		 
+<ChatManager>
+
+    canvas.before:
+		Color:
+			rgba: 1, 1, 1, 1
+
+		Rectangle:
+			size: root.size
+
+		Color:
+			rgba: 0.8, 0.8, 0.8, 1
+
+		Rectangle:
+			size: root.width*0.6, root.height*0.7
+			pos: root.width*0.2, root.height*0.2
+
+    Label:
+		id: head_id
+        text:"Conectador no "
+		color: 0, 0, 0, 
+		size: root.width*0.2, root.height*0.05
+		pos: root.width*0.4, root.height*0.9
+		font_size: root.height*0.025
+	 
+    ScrollView:
+		size: root.width*0.6, root.height*0.7
+		pos: root.width*0.2, root.height*0.2
+
+
+		Label:
+			id: chat_text_id 
+			color: 0, 0, 0, 1
+			size_hint_x: 1.0
+			size_hint_y: None
+			text_size: self.width, None
+			height: self.texture_size[1]
+			markup: True
+    TextInput:
+        id: msg_id
+        text:"teste"
+        size: root.width*0.6, root.height*0.05
+		pos: root.width*0.2, root.height*0.15
+    Button:
+        text:'Enviar'
+        size: root.width*0.2, root.height*0.05
+		pos: root.width*0.4, root.height*0.01
+        on_press: root.send_msg()

@@ -11,7 +11,7 @@ from kivy.uix.popup import Popup
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition,WipeTransition, SlideTransition
 from kivy.core.window import Window
 from kivy.config import Config
 from kivy.lang import Builder
@@ -26,118 +26,134 @@ from datetime import datetime
 import socket
 from requests import get
 
+remoteName = ""
+remoteIP = ""
 
 remote_cond = False
-listen_cond = True
+remote_listen = True
 
-remote_ip = ''
-remote_port = 0
+hostname = socket.gethostname()
 
-listen_msg = ''
-remote_msg = ''
-
-
-
-
+# Obtém o endereço IP associado ao nome do host
+ip = socket.gethostbyname(hostname)
+ 
+listen_msg = ""
+remote_msg = ""
+remote_port = 2006
+listen_cond = False
 
 def sender():
-	global remote_msg, remote_ip, remote_port, remote_cond
-
-	while True:
-		try:
-
-			while remote_cond == True:
-
-				remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				remote_socket.connect((remote_ip, remote_port))
-				print('connect')
-				while True:
-					if remote_msg != '':
-						remote_socket.send(bytes(remote_msg, 'utf-8'))
-						remote_msg = ''
-
-
-
-
-		except:
-			time.sleep(0.5)
-
-
+    global remote_msg, remoteIP, remote_port, remote_cond
+    while True:
+        try:
+            while remote_cond == True:
+                
+                remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                print(remoteIP)
+                remote_socket.connect((remoteIP, remote_port))
+                print("conect")
+                while True:
+                    if(remote_msg != ""):
+                        remote_socket.send(bytes(remote_msg,'utf-8'))
+                        remote_msg = ""
+                        
+                        
+        except:
+            time.sleep(0.5)
+            
 thread_1 = threading.Thread(target = sender)
 
-
-def listen():
-	global listen_msg, listen_cond
-
-	while listen_cond == True:
-		try:
-			listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			listen_socket.bind(('192.168.1.107', 2022))
-			listen_socket.listen(10)
-			print('binded')
-			while True:
-				clientsocket, address = listen_socket.accept()
-				while True:
-					chat_recv = clientsocket.recv(1024)
-					listen_msg = chat_recv.decode("utf-8")
-		except:
-			time.sleep(0.5)
-			pirnt('binding ...')
+def listen(): 
+    
+    global listen_msg, listen_cond
+    
+    while listen_cond == True:
+        
+        try:
+            listen_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            listen_socket.bind(ip,2006)
+            listen_socket.listen(10)
+            print("binded")
+            while True:
+                clientsocket, address = listen_socket.accept()
+                while True:
+                    chat_recv = clientsocket.recv(1024)
+                    listen_msg = chat_recv.decode("utf-8")
+        except:
+            time.sleep(0.5)
+            print("binding...")
 
 
 thread_2 = threading.Thread(target = listen)
 
 
-class welcomescreen(Widget):
-	def __init__(self, **kwargs):
-		super().__init__(**kwargs)
+def sendMessage():
+    servidor_ip = '192.168.100.8'  # Substitua pelo IP do servidor
+    servidor_porta = 12345  # Use a mesma porta que o servidor
 
-	def initiate(self):
-		global remote_ip, remote_port, remote_cond
-		remote_ip = self.ids.ip_id.text
-		remote_port = int(self.ids.port_id.text)
-		remote_cond = True
+    cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    cliente.connect((servidor_ip, servidor_porta))
+ 
+    mensagem = 'DAAAAAALE GURI, FUNCIONOU'
+    cliente.send(mensagem.encode('utf-8'))  # Envie a mensagem para o servidor
 
-		theapp.mainscreen.ids.head_id.text = 'chat is opened with: ' + self.ids.ip_id.text + ' at port: ' + self.ids.port_id.text
-		theapp.screenm.current = 'mainscreen'
-		Clock.schedule_interval(theapp.mainscreen.update_recieved, 0.5)
+class MenuScreen(Widget):
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        
+    def initiate(self):
+        global remoteName, remoteIP,remote_cond
+        remoteName =  self.ids.name_id.text 
+        remoteIP =  self.ids.ip_id.text 
+        chatapp.ChatManager.ids.head_id.text = f"Conectado no IP: {remoteIP}"
+        remote_cond = True
+        chatapp.sm.current = 'ChatManager'
+        Clock.schedule_interval(chatapp.ChatManager.update_recieved, 0.5)
 
-class mainscreen(Widget):
-	def __init__(self, **kwargs):
-		super().__init__(**kwargs)
+     
+class ChatManager(Widget):
+    def __init__(self, **kw):
+       super().__init__(**kw)
+    
+    def teste(self):
+        global remoteIP,remoteName
+  
+        
+    def send_msg(self):
+        global remote_msg
+        self.ids.chat_text_id.text = self.ids.chat_text_id.text + '\n' + chatapp.MenuScreen.ids.name_id.text +' : ' +  self.ids.msg_id.text 
+        remote_msg = chatapp.MenuScreen.ids.name_id.text + ': ' + self.ids.msg_id.text
+        print(remote_msg)
 
-	def send_msg(self):
-		global remote_msg
-		self.ids.chat_text_id.text = self.ids.chat_text_id.text + '\n' + theapp.welcomescreen.ids.user_id.text +' : ' +  self.ids.msg_id.text 
-		remote_msg = theapp.welcomescreen.ids.user_id.text + ': ' + self.ids.msg_id.text
 
+    def update_recieved(self, *args):
+        global listen_msg
+        if listen_msg != '':
+            self.ids.chat_text_id.text = self.ids.chat_text_id.text + '\n' + '[color=#3477eb]' + listen_msg + '[/color]'
+            listen_msg = ''
 
-	def update_recieved(self, *args):
-		global listen_msg
-		if listen_msg != '':
-			self.ids.chat_text_id.text = self.ids.chat_text_id.text + '\n' + '[color=#3477eb]' + listen_msg + '[/color]'
-			listen_msg = ''
-
-
-class theapp(App):
-	def build(self):	
-		self.screenm = ScreenManager(transition=FadeTransition()) 
-		self.welcomescreen = welcomescreen()
-		screen = Screen(name = "welcomescreen")
-		screen.add_widget(self.welcomescreen)
-		self.screenm.add_widget(screen)
-
-		self.mainscreen = mainscreen()
-		screen = Screen(name = "mainscreen")
-		screen.add_widget(self.mainscreen)
-		self.screenm.add_widget(screen)
-
-		return self.screenm
-
-if __name__ == "__main__":
-	theapp = theapp()			
-	thread_1.start()
-	thread_2.start()
-	threading.Thread(target = theapp.run())
-	remote_cond = False
-	listen_cond = False
+class ChatApp(App):
+    def build(self):
+        
+        self.sm = ScreenManager()
+        self.sm = ScreenManager(transition=SlideTransition(direction="down"))
+         
+        self.MenuScreen = MenuScreen()
+        screen = Screen(name="MenuScreen")
+        screen.add_widget(self.MenuScreen)
+        self.sm.add_widget(screen)
+        
+        self.ChatManager = ChatManager()
+        screen = Screen(name="ChatManager")
+        screen.add_widget(self.ChatManager)
+        self.sm.add_widget(screen)
+    
+        return self.sm
+if __name__ == '__main__':
+    # sendMessage()
+    chatapp = ChatApp()		
+    thread_1.start()
+    thread_2.start()
+    threading.Thread(target = chatapp.run())
+    remote_cond = False
+    listen_cond = False

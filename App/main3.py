@@ -49,9 +49,6 @@ def sender():
                     if(remote_msg != ""):
                         remote_socket.send(bytes(remote_msg,'utf-8'))
                         remote_msg = ""
-                
-            
-            
         except:
             time.sleep(0.5)
             
@@ -130,6 +127,6 @@ if __name__ == "__main__":
     theapp = theapp()		
     thread_1.start()
     thread_2.start()
-    thread.Thread(target = theapp.run())
+    threading.Thread(target = theapp.run())
     remote_cond = False
     listen_cond = False
