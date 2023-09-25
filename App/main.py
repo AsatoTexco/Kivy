@@ -54,24 +54,21 @@ def sender():
                 while True:
                     if(remote_msg != ""):
                         remote_socket.send(bytes(remote_msg,'utf-8'))
-                        remote_msg = ""
-                        
-                        
+                        remote_msg = "" 
         except:
             time.sleep(0.5)
             
 thread_1 = threading.Thread(target = sender)
 
-def listen(): 
-    
-    global listen_msg, listen_cond,remoteIP
-    print(remoteIP)
+def listen():
+    global listen_msg, listen_cond
+
     while listen_cond == True:
         try:
-            listen_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            listen_socket.bind('192.168.100.8',2006)
+            listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            listen_socket.bind(('192.168.100.8', 2006))
             listen_socket.listen(10)
-            print("binded")
+            print('binded')
             while True:
                 clientsocket, address = listen_socket.accept()
                 while True:
@@ -80,9 +77,8 @@ def listen():
                     print(listen_msg)
         except:
             time.sleep(0.5)
-            print("binding...")
-
-
+            print('binding ...')
+            
 thread_2 = threading.Thread(target = listen)
 
 
