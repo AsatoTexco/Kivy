@@ -40,7 +40,7 @@ ip = socket.gethostbyname(hostname)
 listen_msg = ""
 remote_msg = ""
 remote_port = 2006
-listen_cond = False
+listen_cond = True
 
 def sender():
     global remote_msg, remoteIP, remote_port, remote_cond
@@ -48,8 +48,7 @@ def sender():
         try:
             while remote_cond == True:
                 
-                remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                print(remoteIP)
+                remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
                 remote_socket.connect((remoteIP, remote_port))
                 print("conect")
                 while True:
@@ -65,13 +64,12 @@ thread_1 = threading.Thread(target = sender)
 
 def listen(): 
     
-    global listen_msg, listen_cond
-    
+    global listen_msg, listen_cond,remoteIP
+    print(remoteIP)
     while listen_cond == True:
-        
         try:
             listen_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            listen_socket.bind(ip,2006)
+            listen_socket.bind('192.168.100.8',2006)
             listen_socket.listen(10)
             print("binded")
             while True:
@@ -79,6 +77,7 @@ def listen():
                 while True:
                     chat_recv = clientsocket.recv(1024)
                     listen_msg = chat_recv.decode("utf-8")
+                    print(listen_msg)
         except:
             time.sleep(0.5)
             print("binding...")
@@ -102,11 +101,12 @@ class MenuScreen(Widget):
         super().__init__(**kw)
         
     def initiate(self):
-        global remoteName, remoteIP,remote_cond
+        global remoteName, remoteIP,remote_cond,listen_cond
         remoteName =  self.ids.name_id.text 
         remoteIP =  self.ids.ip_id.text 
         chatapp.ChatManager.ids.head_id.text = f"Conectado no IP: {remoteIP}"
         remote_cond = True
+        listen_cond = True
         chatapp.sm.current = 'ChatManager'
         Clock.schedule_interval(chatapp.ChatManager.update_recieved, 0.5)
 
